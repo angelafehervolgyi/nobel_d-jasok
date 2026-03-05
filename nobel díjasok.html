@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magyar Nobel-díjasok - Párosítás Feladat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .instructions {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+            color: #555;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .column-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .item {
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #ddd;
+            user-select: none;
+        }
+
+        .winner {
+            background: #f8f9ff;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .winner:hover {
+            background: #e8eaff;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .winner.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .invention {
+            background: #fff8f0;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .invention:hover {
+            background: #ffe8d6;
+            border-color: #ff6b6b;
+            transform: translateX(-5px);
+        }
+
+        .invention.selected {
+            background: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+        }
+
+        .invention.matched {
+            background: #51cf66;
+            color: white;
+            border-color: #51cf66;
+            cursor: not-allowed;
+        }
+
+        .invention.matched:hover {
+            transform: none;
+        }
+
+        .match-info {
+            font-size: 0.85em;
+            margin-top: 5px;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-check {
+            background: #51cf66;
+            color: white;
+        }
+
+        .btn-check:hover {
+            background: #40a852;
+            transform: scale(1.05);
+        }
+
+        .btn-check:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-reset {
+            background: #ffd43b;
+            color: #333;
+        }
+
+        .btn-reset:hover {
+            background: #ffcc00;
+            transform: scale(1.05);
+        }
+
+        .results {
+            background: #f0f4ff;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .score {
+            font-size: 2.5em;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .result-details {
+            text-align: left;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            background: white;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #ddd;
+        }
+
+        .result-item.correct {
+            border-left-color: #51cf66;
+            background: #f1fce4;
+        }
+
+        .result-item.incorrect {
+            border-left-color: #ff6b6b;
+            background: #ffe8e8;
+        }
+
+        .result-item-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .result-item-answer {
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .status-icon {
+            margin-right: 8px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 Magyar Nobel-díjasok</h1>
+            <p class="subtitle">Hungarian Nobel Prize Winners - Matching Game</p>
+        </div>
+
+        <div class="instructions">
+            <strong>📋 Utasítások / Instructions:</strong><br>
+            Kattints a bal oldalon egy Nobel-díjasra, majd kattints a jobb oldalon a hozzá tartozó találmányra! 
+            / Click on a Nobel Prize winner on the left, then click on their corresponding invention on the right!
+        </div>
+
+        <div class="game-board">
+            <div class="column">
+                <div class="column-title">🎓 Nobel-díjasok</div>
+                <div id="winners"></div>
+            </div>
+            <div class="column">
+                <div class="column-title">💡 Találmányok</div>
+                <div id="inventions"></div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-check" id="checkBtn" onclick="checkAnswers()">✓ Ellenőrzés / Check</button>
+            <button class="btn-reset" id="resetBtn" onclick="resetGame()">↻ Újra / Reset</button>
+        </div>
+
+        <div class="results" id="results">
+            <div class="results-title">📊 Eredmények / Results</div>
+            <div class="score" id="scoreDisplay"></div>
+            <div class="result-details" id="resultDetails"></div>
+        </div>
+    </div>
+
+    <script>
+        // Adatok / Data
+        const nobelWinners = [
+            {
+                id: 1,
+                name: "Hevesy György",
+                year: 1943,
+                category: "Kémia / Chemistry"
+            },
+            {
+                id: 2,
+                name: "Békésy György",
+                year: 1961,
+                category: "Fiziológia/Orvostudomány / Physiology/Medicine"
+            },
+            {
+                id: 3,
+                name: "Wigner Jen",
+                year: 1963,
+                category: "Fizika / Physics"
+            },
+            {
+                id: 4,
+                name: "Gábor Dénes",
+                year: 1971,
+                category: "Fizika / Physics"
+            },
+            {
+                id: 5,
+                name: "Polanyi John Charles",
+                year: 1986,
+                category: "Kémia / Chemistry"
+            }
+        ];
+
+        const inventionsList = [
+            {
+                id: "A",
+                name: "Holográfia / Holography",
+                correctWinner: 4
+            },
+            {
+                id: "B",
+                name: "A hallás mechanizmusának kutatása / Research on hearing mechanism",
+                correctWinner: 2
+            },
+            {
+                id: "C",
+                name: "Radioaktív izotópok nyomjelzésként való alkalmazása / Radioactive isotopes as tracers",
+                correctWinner: 1
+            },
+            {
+                id: "D",
+                name: "Atommag szerkezetének kutatása / Nuclear shell structure",
+                correctWinner: 3
+            },
+            {
+                id: "E",
+                name: "Kémiai reakciók spektroszkópiás vizsgálata / Spectroscopic study of chemical reactions",
+                correctWinner: 5
+            }
+        ];
+
+        // Globális változók / Global variables
+        let selectedWinner = null;
+        let userMatches = {};
+        let matchedInventions = new Set();
+
+        // Initialize game / Játék inicializálása
+        function initGame() {
+            renderWinners();
+            renderInventions();
+        }
+
+        // Render winners / Nobel-díjasok megjelenítése
+        function renderWinners() {
+            const winnersContainer = document.getElementById('winners');
+            winnersContainer.innerHTML = '';
+
+            nobelWinners.forEach(winner => {
+                const element = document.createElement('div');
+                element.className = 'item winner';
+                element.id = `winner-${winner.id}`;
+                element.innerHTML = `
+                    <strong>${winner.name}</strong>
+                    <div style="font-size: 0.85em; color: #666; margin-top: 5px;">
+                        (${winner.year}) - ${winner.category}
+                    </div>
+                    <div class="match-info" id="match-${winner.id}"></div>
+                `;
+                element.onclick = () => selectWinner(winner.id);
+                winnersContainer.appendChild(element);
+            });
+        }
+
+        // Render inventions / Találmányok megjelenítése
+        function renderInventions() {
+            const inventionsContainer = document.getElementById('inventions');
+            inventionsContainer.innerHTML = '';
+
+            inventionsList.forEach(invention => {
+                const element = document.createElement('div');
+                element.className = 'item invention';
+                element.id = `invention-${invention.id}`;
+                element.innerHTML = `
+                    <strong>${invention.id}.</strong> ${invention.name}
+                    <div class="match-info" id="match-inv-${invention.id}"></div>
+                `;
+                element.onclick = () => selectInvention(invention.id);
+                inventionsContainer.appendChild(element);
+            });
+        }
+
+        // Select winner / Nobel-díjas kiválasztása
+        function selectWinner(winnerId) {
+            if (selectedWinner === winnerId) {
+                selectedWinner = null;
+            } else {
+                selectedWinner = winnerId;
+            }
+            updateSelection();
+        }
+
+        // Select invention / Találmány kiválasztása
+        function selectInvention(inventionId) {
+            if (selectedWinner === null) {
+                alert('Először válassz egy Nobel-díjast! / First select a Nobel Prize winner!');
+                return;
+            }
+
+            const invention = inventionsList.find(inv => inv.id === inventionId);
+            
+            // Ellenőrizd, hogy a találmány már párosított-e / Check if invention is already matched
+            if (matchedInventions.has(inventionId) && userMatches[selectedWinner] !== inventionId) {
+                alert('Ez a találmány már párosítva van! / This invention is already matched!');
+                return;
+            }
+
+            userMatches[selectedWinner] = inventionId;
+            matchedInventions.add(inventionId);
+            selectedWinner = null;
+            updateSelection();
+            updateMatchInfo();
+        }
+
+        // Update selection visual / Kiválasztás vizuális frissítése
+        function updateSelection() {
+            nobelWinners.forEach(winner => {
+                const element = document.getElementById(`winner-${winner.id}`);
+                if (winner.id === selectedWinner) {
+                    element.classList.add('selected');
+                } else {
+                    element.classList.remove('selected');
+                }
+            });
+        }
+
+        // Update match info / Párosítási információ frissítése
+        function updateMatchInfo() {
+            // Clear all match info / Töröld az összes párosítási információt
+            nobelWinners.forEach(winner => {
+                document.getElementById(`match-${winner.id}`).textContent = '';
+            });
+            inventionsList.forEach(invention => {
+                document.getElementById(`match-inv-${invention.id}`).textContent = '';
+            });
+
+            // Update match info for matched items / Frissítsd a párosított elemek információját
+            Object.entries(userMatches).forEach(([winnerId, inventionId]) => {
+                const invention = inventionsList.find(inv => inv.id === inventionId);
+                document.getElementById(`match-${winnerId}`).textContent = 
+                    `✓ ${inventionId}. ${invention.name}`;
+                document.getElementById(`match-inv-${inventionId}`).textContent = 
+                    `✓ Párosítva: ${nobelWinners.find(w => w.id == winnerId).name}`;
+            });
+
+            // Update matched invention styles / Frissítsd a párosított találmányok stílusát
+            inventionsList.forEach(invention => {
+                const element = document.getElementById(`invention-${invention.id}`);
+                if (matchedInventions.has(invention.id)) {
+                    element.classList.add('matched');
+                    element.classList.remove('selected');
+                } else {
+                    element.classList.remove('matched', 'selected');
+                }
+            });
+        }
+
+        // Check answers / Válaszok ellenőrzése
+        function checkAnswers() {
+            if (Object.keys(userMatches).length !== nobelWinners.length) {
+                alert('Kérjük, párosítsd az összes Nobel-díjast! / Please match all Nobel Prize winners!');
+                return;
+            }
+
+            let correct = 0;
+            const results = [];
+
+            nobelWinners.forEach(winner => {
+                const userAnswer = userMatches[winner.id];
+                const invention = inventionsList.find(inv => inv.id === userAnswer);
+                const isCorrect = invention.correctWinner === winner.id;
+
+                if (isCorrect) {
+                    correct++;
+                }
+
+                results.push({
+                    name: winner.name,
+                    userAnswer: `${userAnswer}. ${invention.name}`,
+                    correct: isCorrect
+                });
+            });
+
+            displayResults(correct, results);
+        }
+
+        // Display results / Eredmények megjelenítése
+        function displayResults(correct, results) {
+            const resultsDiv = document.getElementById('results');
+            const total = nobelWinners.length;
+            const percentage = Math.round((correct / total) * 100);
+
+            document.getElementById('scoreDisplay').innerHTML = 
+                `${correct}/${total} (${percentage}%)<br><span style="font-size: 0.6em;">Helyes / Correct</span>`;
+
+            let detailsHTML = '';
+            results.forEach(result => {
+                const statusClass = result.correct ? 'correct' : 'incorrect';
+                const statusIcon = result.correct ? '✓' : '✗';
+                detailsHTML += `
+                    <div class="result-item ${statusClass}">
+                        <div class="result-item-name">
+                            <span class="status-icon">${statusIcon}</span> ${result.name}
+                        </div>
+                        <div class="result-item-answer">
+                            Válaszod / Your answer: <strong>${result.userAnswer}</strong>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('resultDetails').innerHTML = detailsHTML;
+            resultsDiv.classList.add('show');
+
+            // Disable check button / Tiltsd le az ellenőrzés gombját
+            document.getElementById('checkBtn').disabled = true;
+        }
+
+        // Reset game / Játék zurückállítása
+        function resetGame() {
+            selectedWinner = null;
+            userMatches = {};
+            matchedInventions = new Set();
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('checkBtn').disabled = false;
+            initGame();
+        }
+
+        // Start game / Ját��k indítása
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
